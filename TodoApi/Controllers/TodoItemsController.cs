@@ -72,10 +72,38 @@ namespace TodoApi.Controllers
             return todoItem;
         }
 
+        [HttpPut("completed/{id}")]
+        public async Task<IActionResult> PutTodoItem(int id, TodoReadUpdateDTO todoItemDTO)
+        {
+            if (id != todoItemDTO.Id)
+            {
+                return BadRequest();
+            }
+
+            var todoItem = await _context.TodoItems.FindAsync(id);
+            todoItem.IsComplete = todoItemDTO.IsCompleted;
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!TodoItemExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
         // PUT: api/TodoItems/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTodoItem(int id, TodoItem todoItem)
+        public async Task<IActionResult> PutTodoItem(int id, [FromBody] TodoItem todoItem)
         {
             if (id != todoItem.Id)
             {
